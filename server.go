@@ -43,7 +43,7 @@ func Serve(name string, functionHandler func(w http.ResponseWriter, r *http.Requ
 		})
 		http.ListenAndServe(MetricsAddress, nil)
 	}()
-	router.PathPrefix("/function").HandlerFunc(functionHandler)
+	router.PathPrefix("/").HandlerFunc(functionHandler)
 	err := http.ListenAndServe(FunctionAddress, router)
 	log.Fatal(err)
 }
