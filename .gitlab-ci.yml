@@ -4,8 +4,6 @@ stages:
   - release
 
 lint:
-  tags:
-    - sddc-generic
   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
   allow_failure: true
   stage: test
@@ -26,12 +24,8 @@ vulnerability_check:
     - govulncheck ./...
   needs:
     - lint
-  tags:
-    - sddc-generic
 
 go_fmt:
-  tags:
-    - sddc-generic
   image: golang
   stage: test
   script:
@@ -48,8 +42,6 @@ go_test:
     - go get github.com/boumenot/gocover-cobertura
     - go run github.com/boumenot/gocover-cobertura < coverage.txt > coverage.xml
     - /go/bin/gotestsum --junitfile report.xml --format testname
-  tags:
-    - sddc
   coverage: '/^total:\t+\(statements\)\t+(\d+\.\d+)%/'
   artifacts:
     when: always
