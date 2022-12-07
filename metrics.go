@@ -7,7 +7,12 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
+)
+
+const (
+	labelPath         = "path"
+	labelFunctionName = "functionName"
+	labelStatus       = "status"
 )
 
 var totalRequests = prometheus.NewCounterVec(
@@ -15,7 +20,7 @@ var totalRequests = prometheus.NewCounterVec(
 		Name: "http_requests_total",
 		Help: "Number of get requests.",
 	},
-	[]string{"path", "functionName"},
+	[]string{labelPath, labelFunctionName},
 )
 
 var responseStatus = prometheus.NewCounterVec(
@@ -23,35 +28,45 @@ var responseStatus = prometheus.NewCounterVec(
 		Name: "response_status",
 		Help: "Status of HTTP response",
 	},
-	[]string{"status", "functionName"},
+	[]string{labelPath, labelStatus, labelFunctionName},
 )
 
-var httpDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
+var httpDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 	Name:    "http_response_time_seconds",
 	Help:    "Duration of HTTP requests.",
 	Buckets: prometheus.ExponentialBuckets(0.005, 2, 15),
-}, []string{"path", "functionName"})
+}, []string{labelPath, labelFunctionName})
 
 func prometheusMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		route := mux.CurrentRoute(r)
 		path, _ := route.GetPathTemplate()
 
-		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path, FunctionName))
+		timer := prometheus.NewTimer(httpDuration.With(prometheus.Labels{
+			labelPath:         path,
+			labelFunctionName: FunctionName,
+		}))
 		rw := NewResponseWriter(w)
 		next.ServeHTTP(rw, r)
 
 		statusCode := rw.statusCode
 
-		responseStatus.WithLabelValues(strconv.Itoa(statusCode), FunctionName).Inc()
-		totalRequests.WithLabelValues(path, FunctionName).Inc()
+		responseStatus.With(prometheus.Labels{
+			labelPath:         path,
+			labelStatus:       strconv.Itoa(statusCode),
+			labelFunctionName: FunctionName,
+		}).Inc()
+		totalRequests.With(prometheus.Labels{
+			labelPath:         path,
+			labelFunctionName: FunctionName,
+		}).Inc()
 
 		log.Printf("%s %s %d %s", r.Method, r.URL.Path, statusCode, timer.ObserveDuration())
 	})
 }
 
 func NewResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{w, 0}
+	return &responseWriter{w, http.StatusOK}
 }
 
 func (rw *responseWriter) WriteHeader(code int) {
@@ -65,7 +80,7 @@ type responseWriter struct {
 }
 
 func init() {
-	prometheus.Register(totalRequests)
-	prometheus.Register(responseStatus)
-	prometheus.Register(httpDuration)
+	prometheus.MustRegister(totalRequests)
+	prometheus.MustRegister(responseStatus)
+	prometheus.MustRegister(httpDuration)
 }

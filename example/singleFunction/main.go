@@ -13,5 +13,5 @@ func functionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	webbase.Serve("example", functionHandler)
+	webbase.ServeFunction("example", functionHandler)
 }
