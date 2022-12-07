@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
-	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -19,7 +19,22 @@ var (
 	FunctionName string
 )
 
-func Serve(name string, functionHandler func(w http.ResponseWriter, r *http.Request)) {
+// Serve is a helper function to start a server with a single function handler
+//
+// Deprecated: Use ServeFunction instead
+func Serve(name string, functionHandler http.HandlerFunc) {
+	ServeFunction(name, functionHandler)
+}
+
+// ServeFunction starts a server with a single handler function
+func ServeFunction(name string, functionHandler http.HandlerFunc) {
+	router := NewRouter()
+	router.PathPrefix("/").HandlerFunc(functionHandler)
+	ServeRouter(name, router)
+}
+
+// ServeRouter starts a server with a set of routes
+func ServeRouter(name string, router *mux.Router) {
 	// initialize sentry connection
 	sentry.Init(sentry.ClientOptions{
 		TracesSampleRate: 1.0,
@@ -27,23 +42,18 @@ func Serve(name string, functionHandler func(w http.ResponseWriter, r *http.Requ
 		Transport:        sentry.NewHTTPSyncTransport(),
 	})
 	defer sentry.Flush(2 * time.Second)
-	sentryHandler := sentryhttp.New(sentryhttp.Options{
-		WaitForDelivery: false,
-		Timeout:         1 * time.Second,
-	})
-
 	FunctionName = name
-	router := mux.NewRouter()
-	router.Use(sentryHandler.Handle, prometheusMiddleware, sentryMiddleware)
-
-	go func() {
-		http.Handle("/metrics", promhttp.Handler())
-		http.HandleFunc("/health", func(writer http.ResponseWriter, request *http.Request) {
-			fmt.Fprint(writer, "ok")
-		})
-		http.ListenAndServe(MetricsAddress, nil)
-	}()
-	router.PathPrefix("/").HandlerFunc(functionHandler)
+	go serviceListener()
 	err := http.ListenAndServe(FunctionAddress, router)
 	log.Fatal(err)
+}
+
+// serviceListener starts a server to listen for metrics and health checks
+func serviceListener() {
+	prometheus.DefaultRegisterer.Register(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
+	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/health", func(writer http.ResponseWriter, request *http.Request) {
+		fmt.Fprint(writer, "ok")
+	})
+	http.ListenAndServe(MetricsAddress, nil)
 }
