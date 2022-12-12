@@ -3,8 +3,8 @@ package webbase
 import (
 	"time"
 
+	"github.com/bonsai-oss/mux"
 	sentryhttp "github.com/getsentry/sentry-go/http"
-	"github.com/gorilla/mux"
 )
 
 // NewRouter creates a new router with the default webbase middleware

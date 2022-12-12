@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bonsai-oss/mux"
 	"github.com/getsentry/sentry-go"
-	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )

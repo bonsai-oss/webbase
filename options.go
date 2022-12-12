@@ -1,6 +1,8 @@
 package webbase
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type serveConfiguration struct {
 	webListenAddress     string
