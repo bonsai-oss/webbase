@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/bonsai-oss/mux"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
