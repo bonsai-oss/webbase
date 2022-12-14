@@ -22,5 +22,6 @@ func main() {
 	webbase.ServeRouter("example", router,
 		webbase.WithWebListenAddress("127.0.0.1:8080"),
 		webbase.WithServiceListenAddress("127.0.0.1:8081"),
+		webbase.WithSentryDebug(false),
 	)
 }

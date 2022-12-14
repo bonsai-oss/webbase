@@ -7,6 +7,7 @@ import (
 type serveConfiguration struct {
 	webListenAddress     string
 	serviceListenAddress string
+	sentryDebug          bool
 }
 
 type serveOption func(*serveConfiguration) error
@@ -29,6 +30,14 @@ func WithServiceListenAddress(address string) serveOption {
 			return fmt.Errorf("serviceListenAddress must not be empty")
 		}
 		c.serviceListenAddress = address
+		return nil
+	}
+}
+
+// WithSentryDebug sets the debug flag for sentry
+func WithSentryDebug(debug bool) serveOption {
+	return func(c *serveConfiguration) error {
+		c.sentryDebug = debug
 		return nil
 	}
 }
