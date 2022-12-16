@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bonsai-oss/mux"
 	"github.com/getsentry/sentry-go"
-	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -51,7 +51,7 @@ func ServeRouter(name string, router *mux.Router, options ...serveOption) {
 	sentry.Init(sentry.ClientOptions{
 		TracesSampleRate: 1.0,
 		EnableTracing:    true,
-		Debug:            true,
+		Debug:            config.sentryDebug,
 		Transport:        sentry.NewHTTPSyncTransport(),
 	})
 	defer sentry.Flush(2 * time.Second)
