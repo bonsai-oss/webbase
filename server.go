@@ -38,8 +38,9 @@ func ServeFunction(name string, functionHandler http.HandlerFunc, options ...ser
 // ServeRouter starts a server with a set of routes
 func ServeRouter(name string, router *mux.Router, options ...serveOption) {
 	config := serveConfiguration{
-		webListenAddress:     DefaultFunctionAddress,
-		serviceListenAddress: DefaultMetricsAddress,
+		webListenAddress:      DefaultFunctionAddress,
+		serviceListenAddress:  DefaultMetricsAddress,
+		enableServiceListener: true,
 	}
 	for _, option := range options {
 		if optionApplyError := option(&config); optionApplyError != nil {
@@ -56,7 +57,9 @@ func ServeRouter(name string, router *mux.Router, options ...serveOption) {
 	})
 	defer sentry.Flush(2 * time.Second)
 	FunctionName = name
-	go serviceListener(config.serviceListenAddress)
+	if config.enableServiceListener {
+		go serviceListener(config.serviceListenAddress)
+	}
 	err := http.ListenAndServe(config.webListenAddress, router)
 	log.Fatal(err)
 }

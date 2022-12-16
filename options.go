@@ -5,9 +5,10 @@ import (
 )
 
 type serveConfiguration struct {
-	webListenAddress     string
-	serviceListenAddress string
-	sentryDebug          bool
+	webListenAddress      string
+	serviceListenAddress  string
+	sentryDebug           bool
+	enableServiceListener bool
 }
 
 type serveOption func(*serveConfiguration) error
@@ -38,6 +39,14 @@ func WithServiceListenAddress(address string) serveOption {
 func WithSentryDebug(debug bool) serveOption {
 	return func(c *serveConfiguration) error {
 		c.sentryDebug = debug
+		return nil
+	}
+}
+
+// WithoutServiceEndpoint disables the metrics/healthcheck endpoint
+func WithoutServiceEndpoint() serveOption {
+	return func(c *serveConfiguration) error {
+		c.enableServiceListener = false
 		return nil
 	}
 }
