@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/bonsai-oss/mux v1.8.1
-	github.com/getsentry/sentry-go v0.19.0
+	github.com/getsentry/sentry-go v0.20.0
 	github.com/google/uuid v1.3.0
 	github.com/prometheus/client_golang v1.14.0
 )
@@ -17,7 +17,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
-	golang.org/x/sys v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
+	google.golang.org/protobuf v1.29.1 // indirect
 )
