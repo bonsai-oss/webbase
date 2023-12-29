@@ -53,6 +53,7 @@ func WithoutServiceEndpoint() serveOption {
 	}
 }
 
+// WithHealthCheckHandlerFunc sets the handler function for the healthcheck endpoint
 func WithHealthCheckHandlerFunc(handlerFunc http.HandlerFunc) serveOption {
 	return func(c *serveConfiguration) error {
 		if handlerFunc == nil {
