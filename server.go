@@ -1,7 +1,6 @@
 package webbase
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -9,6 +8,7 @@ import (
 	"github.com/bonsai-oss/mux"
 	"github.com/getsentry/sentry-go"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -41,6 +41,9 @@ func ServeRouter(name string, router *mux.Router, options ...serveOption) {
 		webListenAddress:      DefaultFunctionAddress,
 		serviceListenAddress:  DefaultMetricsAddress,
 		enableServiceListener: true,
+		healthCheckHandlerFunc: func(responseWriter http.ResponseWriter, _ *http.Request) {
+			http.Error(responseWriter, "OK", http.StatusOK)
+		},
 	}
 	for _, option := range options {
 		if optionApplyError := option(&config); optionApplyError != nil {
@@ -58,18 +61,16 @@ func ServeRouter(name string, router *mux.Router, options ...serveOption) {
 	defer sentry.Flush(2 * time.Second)
 	FunctionName = name
 	if config.enableServiceListener {
-		go serviceListener(config.serviceListenAddress)
+		go serviceListener(config.serviceListenAddress, config.healthCheckHandlerFunc)
 	}
 	err := http.ListenAndServe(config.webListenAddress, router)
 	log.Fatal(err)
 }
 
 // serviceListener starts a server to listen for metrics and health checks
-func serviceListener(listenAddress string) {
-	prometheus.DefaultRegisterer.Register(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
+func serviceListener(listenAddress string, healthCheckHandlerFunc http.HandlerFunc) {
+	prometheus.DefaultRegisterer.Register(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	http.Handle("/metrics", promhttp.Handler())
-	http.HandleFunc("/health", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Fprint(writer, "ok")
-	})
+	http.HandleFunc("/health", healthCheckHandlerFunc)
 	http.ListenAndServe(listenAddress, nil)
 }
