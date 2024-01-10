@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/getsentry/sentry-go"
 	"net/http"
 
 	"github.com/bonsai-oss/mux"
+	"github.com/getsentry/sentry-go"
 
 	"github.com/bonsai-oss/webbase"
 )
