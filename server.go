@@ -44,6 +44,11 @@ func ServeRouter(name string, router *mux.Router, options ...serveOption) {
 		healthCheckHandlerFunc: func(responseWriter http.ResponseWriter, _ *http.Request) {
 			http.Error(responseWriter, "OK", http.StatusOK)
 		},
+		sentryClientOptions: sentry.ClientOptions{
+			TracesSampleRate: 1.0,
+			EnableTracing:    true,
+			Transport:        sentry.NewHTTPSyncTransport(),
+		},
 	}
 	for _, option := range options {
 		if optionApplyError := option(&config); optionApplyError != nil {
@@ -52,12 +57,7 @@ func ServeRouter(name string, router *mux.Router, options ...serveOption) {
 	}
 
 	// initialize sentry connection
-	sentry.Init(sentry.ClientOptions{
-		TracesSampleRate: 1.0,
-		EnableTracing:    true,
-		Debug:            config.sentryDebug,
-		Transport:        sentry.NewHTTPSyncTransport(),
-	})
+	sentry.Init(config.sentryClientOptions)
 	defer sentry.Flush(2 * time.Second)
 	FunctionName = name
 	if config.enableServiceListener {

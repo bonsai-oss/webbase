@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/getsentry/sentry-go"
 	"net/http"
 
 	"github.com/bonsai-oss/mux"
@@ -22,6 +23,11 @@ func main() {
 	webbase.ServeRouter("example", router,
 		webbase.WithWebListenAddress("127.0.0.1:8080"),
 		webbase.WithServiceListenAddress("127.0.0.1:8081"),
-		webbase.WithSentryDebug(false),
+		webbase.WithSentryClientOptions(sentry.ClientOptions{
+			TracesSampleRate: 1.0,
+			SampleRate:       1.0,
+			Debug:            true,
+			Environment:      "development",
+		}),
 	)
 }
