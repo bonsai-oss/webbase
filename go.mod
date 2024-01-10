@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/bonsai-oss/mux v1.8.1
-	github.com/getsentry/sentry-go v0.25.0
+	github.com/getsentry/sentry-go v0.26.0
 	github.com/google/uuid v1.5.0
 	github.com/prometheus/client_golang v1.18.0
 )
