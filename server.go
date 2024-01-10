@@ -52,12 +52,7 @@ func ServeRouter(name string, router *mux.Router, options ...serveOption) {
 	}
 
 	// initialize sentry connection
-	sentry.Init(sentry.ClientOptions{
-		TracesSampleRate: 1.0,
-		EnableTracing:    true,
-		Debug:            config.sentryDebug,
-		Transport:        sentry.NewHTTPSyncTransport(),
-	})
+	sentry.Init(config.sentryClientOptions)
 	defer sentry.Flush(2 * time.Second)
 	FunctionName = name
 	if config.enableServiceListener {

@@ -3,12 +3,14 @@ package webbase
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/getsentry/sentry-go"
 )
 
 type serveConfiguration struct {
 	webListenAddress       string
 	serviceListenAddress   string
-	sentryDebug            bool
+	sentryClientOptions    sentry.ClientOptions
 	enableServiceListener  bool
 	healthCheckHandlerFunc http.HandlerFunc
 }
@@ -38,9 +40,19 @@ func WithServiceListenAddress(address string) serveOption {
 }
 
 // WithSentryDebug sets the debug flag for sentry
+//
+// Deprecated: Use WithSentryClientOptions instead
 func WithSentryDebug(debug bool) serveOption {
 	return func(c *serveConfiguration) error {
-		c.sentryDebug = debug
+		c.sentryClientOptions.Debug = debug
+		return nil
+	}
+}
+
+// WithSentryClientOptions configures the sentry client sdk
+func WithSentryClientOptions(options sentry.ClientOptions) serveOption {
+	return func(c *serveConfiguration) error {
+		c.sentryClientOptions = options
 		return nil
 	}
 }
