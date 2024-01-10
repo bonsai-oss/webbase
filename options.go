@@ -40,6 +40,7 @@ func WithServiceListenAddress(address string) serveOption {
 }
 
 // WithSentryDebug sets the debug flag for sentry
+// This option will be overwritten by WithSentryClientOptions if used together
 //
 // Deprecated: Use WithSentryClientOptions instead
 func WithSentryDebug(debug bool) serveOption {
