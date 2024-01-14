@@ -25,6 +25,7 @@ func main() {
 		webbase.WithServiceListenAddress("127.0.0.1:8081"),
 		webbase.WithSentryClientOptions(sentry.ClientOptions{
 			TracesSampleRate: 1.0,
+			EnableTracing:    true,
 			SampleRate:       1.0,
 			Debug:            true,
 			Environment:      "development",

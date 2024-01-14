@@ -46,7 +46,7 @@ func prometheusMiddleware(next http.Handler) http.Handler {
 			labelPath:         path,
 			labelFunctionName: FunctionName,
 		}))
-		rw := NewResponseWriter(w)
+		rw := newResponseWriter(w)
 		next.ServeHTTP(rw, r)
 
 		statusCode := rw.statusCode
@@ -63,20 +63,6 @@ func prometheusMiddleware(next http.Handler) http.Handler {
 
 		log.Printf("%s %s %d %s", r.Method, r.URL.Path, statusCode, timer.ObserveDuration())
 	})
-}
-
-func NewResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{w, http.StatusOK}
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
-	rw.ResponseWriter.WriteHeader(code)
-}
-
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode int
 }
 
 func init() {
