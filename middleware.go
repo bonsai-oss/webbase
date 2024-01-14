@@ -25,6 +25,9 @@ func sentryMiddleware(next http.Handler) http.Handler {
 		rw := &responseWriter{ResponseWriter: w}
 
 		next.ServeHTTP(rw, r)
+		if rw.statusCode == 0 {
+			rw.WriteHeader(http.StatusOK)
+		}
 
 		if transaction != nil {
 			statusCode := rw.statusCode
@@ -45,7 +48,9 @@ func prometheusMiddleware(next http.Handler) http.Handler {
 		}))
 		rw := newResponseWriter(w)
 		next.ServeHTTP(rw, r)
-
+		if rw.statusCode == 0 {
+			rw.WriteHeader(http.StatusOK)
+		}
 		statusCode := rw.statusCode
 
 		responseStatus.With(prometheus.Labels{
