@@ -1,11 +1,6 @@
 package webbase
 
 import (
-	"log"
-	"net/http"
-	"strconv"
-
-	"github.com/bonsai-oss/mux"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -15,69 +10,23 @@ const (
 	labelStatus       = "status"
 )
 
-var totalRequests = prometheus.NewCounterVec(
-	prometheus.CounterOpts{
+var (
+	totalRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "http_requests_total",
 		Help: "Number of get requests.",
-	},
-	[]string{labelPath, labelFunctionName},
-)
+	}, []string{labelPath, labelFunctionName})
 
-var responseStatus = prometheus.NewCounterVec(
-	prometheus.CounterOpts{
+	responseStatus = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "response_status",
 		Help: "Status of HTTP response",
-	},
-	[]string{labelPath, labelStatus, labelFunctionName},
+	}, []string{labelPath, labelStatus, labelFunctionName})
+
+	httpDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "http_response_time_seconds",
+		Help:    "Duration of HTTP requests.",
+		Buckets: prometheus.ExponentialBuckets(0.005, 2, 15),
+	}, []string{labelPath, labelFunctionName})
 )
-
-var httpDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-	Name:    "http_response_time_seconds",
-	Help:    "Duration of HTTP requests.",
-	Buckets: prometheus.ExponentialBuckets(0.005, 2, 15),
-}, []string{labelPath, labelFunctionName})
-
-func prometheusMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		route := mux.CurrentRoute(r)
-		path, _ := route.GetPathTemplate()
-
-		timer := prometheus.NewTimer(httpDuration.With(prometheus.Labels{
-			labelPath:         path,
-			labelFunctionName: FunctionName,
-		}))
-		rw := NewResponseWriter(w)
-		next.ServeHTTP(rw, r)
-
-		statusCode := rw.statusCode
-
-		responseStatus.With(prometheus.Labels{
-			labelPath:         path,
-			labelStatus:       strconv.Itoa(statusCode),
-			labelFunctionName: FunctionName,
-		}).Inc()
-		totalRequests.With(prometheus.Labels{
-			labelPath:         path,
-			labelFunctionName: FunctionName,
-		}).Inc()
-
-		log.Printf("%s %s %d %s", r.Method, r.URL.Path, statusCode, timer.ObserveDuration())
-	})
-}
-
-func NewResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{w, http.StatusOK}
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
-	rw.ResponseWriter.WriteHeader(code)
-}
-
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
 
 func init() {
 	prometheus.MustRegister(totalRequests)
