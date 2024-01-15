@@ -7,7 +7,7 @@ require (
 	github.com/getsentry/sentry-go v0.26.0
 	github.com/google/uuid v1.5.0
 	github.com/prometheus/client_golang v1.18.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 )
 
 require (
