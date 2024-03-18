@@ -10,7 +10,9 @@ func newResponseWriter(w http.ResponseWriter) *responseWriter {
 
 func (rw *responseWriter) WriteHeader(code int) {
 	rw.statusCode = code
-	rw.ResponseWriter.WriteHeader(code)
+	if code != http.StatusOK {
+		rw.ResponseWriter.WriteHeader(code)
+	}
 }
 
 type responseWriter struct {
